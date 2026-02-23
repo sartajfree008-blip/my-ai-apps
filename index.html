@@ -2,568 +2,607 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#080c14">
-<title>DevMind AI</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#020509">
+<title>DevMind AI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #080c14;
-  --bg2: #0d1420;
-  --bg3: #111c2e;
-  --border: #1e2d45;
-  --accent: #00e5ff;
-  --accent2: #7c3aff;
-  --accent3: #ff3a7c;
-  --green: #00ff88;
-  --text: #e8f4ff;
-  --muted: #4a6080;
-  --card: #0f1928;
+  --bg:     #020509;
+  --bg2:    #060d16;
+  --bg3:    #0a1520;
+  --bg4:    #0f1e2e;
+  --border: #162436;
+  --c1:     #00f0ff;
+  --c2:     #ff2d6d;
+  --c3:     #a259ff;
+  --c4:     #00ff88;
+  --c5:     #ffb800;
+  --text:   #ddeeff;
+  --muted:  #3a5570;
+  --card:   #091525;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
-body {
-  font-family: 'Outfit', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  height: 100dvh;
-  overflow: hidden;
-  position: relative;
+html,body{height:100%;overflow:hidden}
+
+body{
+  font-family:'Syne',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  position:relative;
 }
 
-/* Animated background grid */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:0.4;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at 70% 20%, rgba(124,58,255,0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 80%, rgba(0,229,255,0.06) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-  animation: bgPulse 8s ease-in-out infinite alternate;
+/* ── GLOW BLOBS ── */
+.blob{
+  position:fixed;border-radius:50%;filter:blur(80px);
+  pointer-events:none;z-index:0;animation:blobFloat 10s ease-in-out infinite alternate;
+}
+.blob1{width:300px;height:300px;background:rgba(0,240,255,0.06);top:-100px;right:-50px;}
+.blob2{width:250px;height:250px;background:rgba(162,89,255,0.07);bottom:-80px;left:-50px;animation-delay:-5s;}
+.blob3{width:200px;height:200px;background:rgba(255,45,109,0.05);top:50%;left:50%;animation-delay:-3s;}
+
+@keyframes blobFloat{
+  0%{transform:translate(0,0) scale(1);}
+  100%{transform:translate(30px,20px) scale(1.15);}
 }
 
-@keyframes bgPulse {
-  0% { transform: scale(1) rotate(0deg); }
-  100% { transform: scale(1.1) rotate(3deg); }
+/* ── APP SHELL ── */
+#app{
+  position:relative;z-index:1;
+  height:100dvh;display:flex;flex-direction:column;
 }
 
-/* ─── LAYOUT ─── */
-#app {
-  position: relative;
-  z-index: 1;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  background:rgba(2,5,9,0.92);
+  backdrop-filter:blur(24px);
+  flex-shrink:0;
 }
 
-/* ─── HEADER ─── */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(8,12,20,0.9);
-  backdrop-filter: blur(20px);
-  flex-shrink: 0;
+.logo{
+  font-family:'JetBrains Mono',monospace;
+  font-size:15px;font-weight:700;
+  color:var(--c1);
+  display:flex;align-items:center;gap:8px;
 }
 
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.logo-ring{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--c1);
+  position:relative;display:flex;align-items:center;justify-content:center;
 }
 
-.logo-dot {
-  width: 8px; height: 8px;
-  background: var(--green);
-  border-radius: 50%;
-  animation: pulse 2s infinite;
+.logo-ring::after{
+  content:'';width:8px;height:8px;
+  background:var(--c1);border-radius:50%;
+  animation:ringPulse 2s infinite;
 }
 
-@keyframes pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+@keyframes ringPulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(1.5);opacity:0.4;}
 }
 
-.header-status {
-  font-size: 11px;
-  color: var(--muted);
-  font-family: 'Space Mono', monospace;
+.header-right{
+  display:flex;align-items:center;gap:8px;
 }
 
-/* ─── TABS ─── */
-.tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-  flex-shrink: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+.api-counter{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--c4);
+  background:rgba(0,255,136,0.08);
+  border:1px solid rgba(0,255,136,0.2);
+  padding:3px 8px;border-radius:20px;
 }
 
-.tabs::-webkit-scrollbar { display: none; }
+/* ── TABS ── */
+.tabs{
+  display:flex;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
 
-.tab {
-  flex: 1;
-  min-width: 70px;
-  padding: 10px 8px;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
-  white-space: nowrap;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+.tab{
+  flex:1;min-width:60px;padding:9px 6px;
+  text-align:center;font-size:10px;font-weight:700;
+  color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all 0.2s;white-space:nowrap;
+  letter-spacing:0.8px;text-transform:uppercase;
+}
+.tab.active{color:var(--c1);border-bottom-color:var(--c1);background:rgba(0,240,255,0.04);}
+.tab:hover:not(.active){color:var(--text);}
+
+/* ── PANELS ── */
+.panel{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.panel.active{display:flex;}
+
+/* ════════════════════
+   CHAT
+════════════════════ */
+#chatPanel{flex-direction:column;}
+
+.chat-msgs{
+  flex:1;overflow-y:auto;padding:14px;
+  display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
 
-.tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  background: rgba(0,229,255,0.05);
+.msg{display:flex;gap:8px;animation:msgIn 0.3s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{flex-direction:row-reverse;}
+
+.av{
+  width:28px;height:28px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.msg.ai .av{background:linear-gradient(135deg,var(--c3),var(--c1));}
+.msg.user .av{background:linear-gradient(135deg,var(--c2),var(--c5));}
+
+.bubble{
+  max-width:82%;padding:9px 13px;
+  border-radius:11px;font-size:13px;line-height:1.5;
+}
+.msg.ai .bubble{
+  background:var(--bg4);border:1px solid var(--border);
+  border-top-left-radius:3px;
+}
+.msg.user .bubble{
+  background:linear-gradient(135deg,rgba(162,89,255,0.25),rgba(0,240,255,0.15));
+  border:1px solid rgba(0,240,255,0.15);
+  border-top-right-radius:3px;
 }
 
-.tab:hover:not(.active) { color: var(--text); }
+.msg-btns{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;}
+.mb{
+  padding:4px 10px;border-radius:20px;
+  border:1px solid var(--c1);background:rgba(0,240,255,0.07);
+  color:var(--c1);font-size:11px;cursor:pointer;
+  font-family:'Syne',sans-serif;transition:all 0.2s;
+}
+.mb:hover{background:rgba(0,240,255,0.18);}
+.mb.g{border-color:var(--c4);color:var(--c4);background:rgba(0,255,136,0.07);}
+.mb.r{border-color:var(--c2);color:var(--c2);background:rgba(255,45,109,0.07);}
 
-/* ─── PANELS ─── */
-.panel {
-  display: none;
-  flex: 1;
-  overflow: hidden;
-  flex-direction: column;
+.typing{display:flex;gap:4px;align-items:center;padding:6px 0;}
+.typing span{
+  width:5px;height:5px;background:var(--c1);
+  border-radius:50%;animation:bounce 1.2s infinite;
+}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:0.3;}50%{transform:translateY(-5px);opacity:1;}}
+
+.chat-bottom{
+  padding:10px 12px;border-top:1px solid var(--border);
+  background:var(--bg2);flex-shrink:0;
 }
 
-.panel.active {
-  display: flex;
+.qps{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;}
+.qps::-webkit-scrollbar{display:none;}
+.qp{
+  white-space:nowrap;padding:4px 11px;border-radius:20px;
+  border:1px solid var(--border);background:var(--bg3);
+  color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.2s;
+}
+.qp:hover{border-color:var(--c1);color:var(--c1);}
+
+.input-row{display:flex;gap:7px;align-items:flex-end;}
+
+#chatInput{
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:11px;padding:9px 13px;color:var(--text);
+  font-family:'Syne',sans-serif;font-size:13px;
+  resize:none;max-height:110px;min-height:40px;
+  outline:none;transition:border-color 0.2s;
+}
+#chatInput:focus{border-color:var(--c1);}
+#chatInput::placeholder{color:var(--muted);}
+
+.send{
+  width:40px;height:40px;border-radius:11px;border:none;
+  background:linear-gradient(135deg,var(--c3),var(--c1));
+  color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:transform 0.15s;
+}
+.send:active{transform:scale(0.9);}
+
+/* ════════════════════
+   DASHBOARD
+════════════════════ */
+#dashPanel{overflow-y:auto;padding:14px;gap:10px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+
+.sec-title{
+  font-size:10px;font-weight:700;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;
+  margin:4px 0 8px;display:flex;align-items:center;gap:6px;
+}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* API Status Grid */
+.api-status-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;
+  margin-bottom:12px;
 }
 
-/* ═══════════════════════════════
-   CHAT PANEL
-═══════════════════════════════ */
-#chatPanel {
-  display: none;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
+.api-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;transition:all 0.2s;
+  position:relative;overflow:hidden;
+}
+.api-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  opacity:0;transition:opacity 0.2s;
+}
+.api-card:hover::before{opacity:1;}
+.api-card:hover{border-color:rgba(0,240,255,0.25);}
+
+.api-card.gemini::before{background:linear-gradient(90deg,#4285f4,#0cf);}
+.api-card.groq::before{background:linear-gradient(90deg,#ff6b35,#f7c59f);}
+.api-card.llama::before{background:linear-gradient(90deg,#0668e1,#a259ff);}
+.api-card.hf::before{background:linear-gradient(90deg,#ff9d00,#ffdb4d);}
+.api-card.stability::before{background:linear-gradient(90deg,#6c3de0,#c084fc);}
+.api-card.suno::before{background:linear-gradient(90deg,#ff2d6d,#ff6b9d);}
+
+.api-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--muted);flex-shrink:0;transition:all 0.3s;
+}
+.api-dot.active{background:var(--c4);box-shadow:0 0 8px var(--c4);}
+.api-dot.error{background:var(--c2);box-shadow:0 0 8px var(--c2);}
+.api-dot.testing{
+  background:var(--c5);
+  animation:dotPulse 0.8s infinite alternate;
+}
+@keyframes dotPulse{from{opacity:0.3;}to{opacity:1;}}
+
+.api-info{flex:1;min-width:0;}
+.api-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:1px;}
+.api-count{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.api-ping{
+  font-size:9px;font-family:'JetBrains Mono',monospace;
+  color:var(--muted);text-align:right;
 }
 
-#chatPanel.active { display: flex; }
+/* Stats Row */
+.stats-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:7px;
+  margin-bottom:12px;
+}
+.stat-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:10px;text-align:center;
+}
+.stat-num{
+  font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;
+  color:var(--c1);line-height:1;margin-bottom:4px;
+}
+.stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
 
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+/* Action Grid */
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.act-btn{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:12px;cursor:pointer;
+  transition:all 0.2s;text-align:center;
+}
+.act-btn:hover{border-color:var(--c1);transform:translateY(-1px);}
+.act-btn:active{transform:scale(0.97);}
+.act-icon{font-size:22px;margin-bottom:5px;}
+.act-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.act-desc{font-size:10px;color:var(--muted);}
+.act-btn.full{grid-column:1/-1;}
+.act-btn.primary{
+  background:linear-gradient(135deg,rgba(0,240,255,0.12),rgba(162,89,255,0.12));
+  border-color:rgba(0,240,255,0.3);
 }
 
-.msg {
-  display: flex;
-  gap: 10px;
-  animation: msgIn 0.3s ease;
+/* ════════════════════
+   COMPARE
+════════════════════ */
+#comparePanel{overflow-y:auto;padding:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+
+.score-banner{
+  display:grid;grid-template-columns:1fr auto 1fr;gap:8px;
+  align-items:center;margin-bottom:14px;
+}
+.score-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:12px;text-align:center;
+}
+.score-box.mine{border-color:rgba(0,240,255,0.3);}
+.score-box.theirs{border-color:rgba(255,45,109,0.3);}
+.score-label{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.score-num{
+  font-size:32px;font-weight:800;
+  font-family:'JetBrains Mono',monospace;
+  line-height:1;
+}
+.score-box.mine .score-num{color:var(--c1);}
+.score-box.theirs .score-num{color:var(--c2);}
+.vs{font-size:11px;font-weight:800;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+.cmp-btn{
+  width:100%;padding:13px;border-radius:11px;
+  border:1px solid var(--c1);background:rgba(0,240,255,0.07);
+  color:var(--c1);font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  transition:all 0.2s;margin-bottom:12px;
+}
+.cmp-btn:hover{background:rgba(0,240,255,0.18);}
+
+.feat-list{display:flex;flex-direction:column;gap:6px;}
+.feat{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:6px;align-items:center;
+  padding:9px 11px;background:var(--card);
+  border:1px solid var(--border);border-radius:9px;
+}
+.feat-mine{font-size:11px;color:var(--c1);font-weight:700;}
+.feat-name{font-size:9px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.5px;}
+.feat-theirs{font-size:11px;color:var(--muted);text-align:right;}
+.feat-mine.w{color:var(--c4);}
+
+/* Progress Bar */
+.progress-wrap{
+  width:100%;background:var(--bg3);border-radius:20px;
+  height:6px;margin:10px 0;overflow:hidden;
+}
+.progress-bar{
+  height:6px;border-radius:20px;
+  background:linear-gradient(90deg,var(--c3),var(--c1));
+  transition:width 0.5s ease;width:0%;
 }
 
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ════════════════════
+   CODE EDITOR
+════════════════════ */
+#codePanel{flex-direction:column;}
+
+.code-bar{
+  display:flex;gap:6px;padding:8px 10px;
+  border-bottom:1px solid var(--border);background:var(--bg2);
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+.code-bar::-webkit-scrollbar{display:none;}
+
+.cb{
+  padding:5px 12px;border-radius:7px;
+  border:1px solid var(--border);background:var(--bg3);
+  color:var(--muted);font-size:11px;cursor:pointer;
+  white-space:nowrap;font-family:'Syne',sans-serif;transition:all 0.2s;
+}
+.cb:hover{color:var(--text);border-color:var(--c1);}
+.cb.p{background:linear-gradient(135deg,var(--c3),var(--c1));color:#fff;border:none;}
+
+#codeEd{
+  flex:1;background:var(--bg);color:#7dd3fc;
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  padding:14px;border:none;outline:none;resize:none;
+  line-height:1.65;tab-size:2;overflow-y:auto;
 }
 
-.msg.user { flex-direction: row-reverse; }
+/* ════════════════════
+   API KEYS
+════════════════════ */
+#keysPanel{overflow-y:auto;padding:14px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
 
-.msg-avatar {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
+.key-group{margin-bottom:14px;}
+.key-group-title{
+  font-size:10px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:7px;
+  display:flex;align-items:center;gap:6px;
 }
 
-.msg.ai .msg-avatar { background: linear-gradient(135deg, var(--accent2), var(--accent)); }
-.msg.user .msg-avatar { background: linear-gradient(135deg, var(--accent3), #ff8c00); }
+.key-row{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 11px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:9px;
+  margin-bottom:5px;
+}
+.key-label{
+  font-size:11px;font-weight:700;min-width:80px;
+  font-family:'JetBrains Mono',monospace;
+}
+.key-inp{
+  flex:1;background:transparent;border:none;
+  outline:none;color:var(--text);font-size:11px;
+  font-family:'JetBrains Mono',monospace;
+}
+.key-inp::placeholder{color:var(--muted);}
+.key-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.key-dot.ok{background:var(--c4);box-shadow:0 0 6px var(--c4);}
 
-.msg-bubble {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.5;
+.save-all{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--c3),var(--c1));
+  color:#fff;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  margin-top:6px;margin-bottom:14px;transition:opacity 0.2s;
+}
+.save-all:hover{opacity:0.85;}
+
+.test-all{
+  width:100%;padding:11px;border-radius:10px;
+  border:1px solid var(--c3);background:rgba(162,89,255,0.08);
+  color:var(--c3);font-size:13px;font-weight:700;
+  cursor:pointer;font-family:'Syne',sans-serif;
+  margin-bottom:14px;transition:all 0.2s;
+}
+.test-all:hover{background:rgba(162,89,255,0.18);}
+
+.how-to{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:11px;padding:13px;font-size:11px;
+  color:var(--muted);line-height:1.9;
 }
 
-.msg.ai .msg-bubble {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-top-left-radius: 4px;
+/* ════════════════════
+   BUILD OVERLAY
+════════════════════ */
+#buildOv{
+  display:none;position:fixed;inset:0;
+  background:rgba(2,5,9,0.97);z-index:200;
+  flex-direction:column;align-items:center;
+  justify-content:center;padding:20px;
+}
+#buildOv.show{display:flex;}
+
+.bov-title{font-size:18px;font-weight:800;color:var(--c1);margin-bottom:5px;text-align:center;}
+.bov-sub{font-size:12px;color:var(--muted);margin-bottom:20px;text-align:center;}
+
+.bov-prog{
+  width:100%;max-width:340px;
+  background:var(--bg3);border-radius:20px;height:6px;
+  margin-bottom:16px;overflow:hidden;
+}
+.bov-bar{
+  height:6px;border-radius:20px;
+  background:linear-gradient(90deg,var(--c3),var(--c1));
+  transition:width 0.4s ease;width:0%;
 }
 
-.msg.user .msg-bubble {
-  background: linear-gradient(135deg, rgba(124,58,255,0.3), rgba(0,229,255,0.2));
-  border: 1px solid rgba(0,229,255,0.2);
-  border-top-right-radius: 4px;
+.bov-log{
+  width:100%;max-width:340px;height:180px;
+  overflow-y:auto;background:var(--bg3);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;color:var(--c4);scrollbar-width:thin;
 }
 
-.msg-bubble pre {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  background: rgba(0,0,0,0.4);
-  padding: 10px;
-  border-radius: 6px;
-  overflow-x: auto;
-  margin-top: 8px;
-  border-left: 3px solid var(--accent);
+.bov-score{
+  font-size:36px;font-weight:800;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--c1);margin:10px 0 5px;
+  text-align:center;
+}
+.bov-score-label{font-size:11px;color:var(--muted);text-align:center;margin-bottom:10px;}
+
+.bov-cancel{
+  margin-top:16px;padding:9px 28px;border-radius:9px;
+  border:1px solid var(--c2);background:transparent;
+  color:var(--c2);font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;
 }
 
-.msg-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:70px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:var(--bg4);border:1px solid var(--c1);
+  color:var(--text);padding:9px 18px;border-radius:20px;
+  font-size:12px;opacity:0;transition:all 0.25s;
+  z-index:300;white-space:nowrap;pointer-events:none;
 }
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-.action-btn {
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--accent);
-  background: rgba(0,229,255,0.08);
-  color: var(--accent);
-  font-size: 11px;
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-  transition: all 0.2s;
-}
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
 
-.action-btn:hover {
-  background: rgba(0,229,255,0.2);
-}
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
 
-.action-btn.green {
-  border-color: var(--green);
-  color: var(--green);
-  background: rgba(0,255,136,0.08);
-}
+<div id="app">
 
-.typing {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 8px 0;
-}
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-ring"></div>
+    DevMind<span style="color:var(--c3)">.</span>AI
+  </div>
+  <div class="header-right">
+    <div class="api-counter" id="apiCounter">0 APIs</div>
+  </div>
+</header>
 
-.typing span {
-  width: 6px; height: 6px;
-< truncated lines 285-1291 >
-      removeTyping();
-      addMsg(response, false);
-      await fixBugs();
-      return;
-    } else {
-      // General AI chat
-      const sys = `Tu DevMind AI hai — ek expert AI game developer + web developer. 
-      Tu Hindi aur English dono mein baat karta hai (Hinglish).
-      User ke saath friendly aur helpful reh.
-      Agar koi game ya app banana ho toh seedha keh: "Banata hun!" aur details maango.`;
-      
-      response = await callGroq(text, sys) || await callGemini(text);
-      
-      if (lower.includes('carrom') || lower.includes('game')) {
-        actions = [
-          { label:'🎮 Build Karo!', fn:"startBuild('carrom')" },
-          { label:'🔍 Compare', fn:'runCompare()' }
-        ];
-      }
-    }
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="sw('chat')">💬 Chat</div>
+  <div class="tab" onclick="sw('dash')">⚡ Dash</div>
+  <div class="tab" onclick="sw('compare')">🔍 Compare</div>
+  <div class="tab" onclick="sw('code')">💻 Code</div>
+  <div class="tab" onclick="sw('keys')">🔑 Keys</div>
+</div>
 
-    removeTyping();
-    if (response) {
-      chatHistory.push({ role:'assistant', content: response });
-      addMsg(response, false, actions);
-    } else {
-      addMsg("⚠️ API se response nahi aaya. Keys check karo.", false);
-    }
-  } catch(e) {
-    removeTyping();
-    addMsg("❌ Error: " + e.message, false);
-  }
-}
+<!-- ── CHAT ── -->
+<div class="panel active" id="chatPanel">
+  <div class="chat-msgs" id="msgs"></div>
+  <div class="chat-bottom">
+    <div class="qps">
+      <div class="qp" onclick="qp('Carrom game 30x better than Disc Pool banao')">🎮 Carrom</div>
+      <div class="qp" onclick="qp('Chess game with AI opponent banao')">♟️ Chess</div>
+      <div class="qp" onclick="qp('Snake game with power-ups banao')">🐍 Snake</div>
+      <div class="qp" onclick="qp('Code ke bugs fix karo')">🐛 Fix</div>
+      <div class="qp" onclick="qp('Game ko 30x better banao aur Disc Pool se compare karo')">📊 Improve</div>
+      <div class="qp" onclick="qp('Ludo game 4 players ke liye banao')">🎲 Ludo</div>
+    </div>
+    <div class="input-row">
+      <textarea id="chatInput" placeholder="Game banwao, improve karo, fix karo..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoR(this)"></textarea>
+      <button class="send" onclick="send()">➤</button>
+    </div>
+  </div>
+</div>
 
-// ════════════════════════════════════════
-// BUILD SYSTEM
-// ════════════════════════════════════════
-function buildLog(msg, color='#00ff88') {
-  const d = document.getElementById('buildLog');
-  d.innerHTML += `<span style="color:${color}">▶ ${msg}</span><br>`;
-  d.scrollTop = 99999;
-}
+<!-- ── DASHBOARD ── -->
+<div class="panel" id="dashPanel">
 
-function setBuildProgress(pct, phase) {
-  document.getElementById('buildBar').style.width = pct + '%';
-  document.getElementById('buildPhaseText').textContent = phase;
-}
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-box">
+      <div class="stat-num" id="st-apis">0</div>
+      <div class="stat-label">APIs Active</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="st-score">—</div>
+      <div class="stat-label">Score /30</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" id="st-lines">0</div>
+      <div class="stat-label">Code Lines</div>
+    </div>
+  </div>
 
-async function startBuild(type='carrom', customPrompt='') {
-  if (KEYS.groq.length === 0) { showToast('⚠️ Pehle Groq API key save karo!'); switchTab('settings'); return; }
-  
-  buildCancelled = false;
-  document.getElementById('buildLog').innerHTML = '';
-  document.getElementById('buildOverlay').classList.add('show');
-  document.getElementById('buildStatus').textContent = 'Building...';
+  <div class="sec-title">API Status</div>
 
-  setBuildProgress(5, 'Phase 1: Base game generate ho raha hai...');
-  buildLog('🚀 Build shuru!');
-
-  const basePrompt = customPrompt || `
-    Ek complete carrom board game banao — single HTML file mein sab kuch.
-    Ye features zaroori hain:
-    1. HTML5 Canvas — realistic carrom board (wooden texture)
-    2. Real physics — collision, friction, spin, momentum conservation
-    3. Striker control — drag aur release (mouse + touch)
-    4. 9 black + 9 white coins + 1 red queen
-    5. 4 corner pockets
-    6. Smart AI opponent — 3 difficulty levels (Easy/Medium/Hard)
-    7. Proper carrom scoring (pocketing queen bonus, etc.)
-    8. Power meter + angle guide for striker
-    9. Particle effects on collision + pocket
-    10. Web Audio API sounds
-    11. Achievement system
-    12. 3 game modes: Classic, Timed, Tournament
-    13. Theme selector: Wood, Neon, Marble
-    14. Mobile touch support + responsive canvas
-    15. 60fps smooth animation
-    16. High score saved in localStorage
-    17. Main menu + pause menu
-    18. PWA meta tags
-    Ek hi HTML file, koi external library nahi.
-  `;
-
-  buildLog('📡 3 APIs parallel mein code generate kar rahe hain...');
-  setBuildProgress(15, 'Phase 1: Parallel generation...');
-
-  const [v1, v2, v3] = await Promise.all([
-    callGroq(basePrompt),
-    callGroq(basePrompt),
-    callGemini(basePrompt)
-  ]);
-
-  if (buildCancelled) return closeBuild();
-
-  buildLog('🧠 Best version choose ho raha hai...');
-  setBuildProgress(35, 'Phase 2: Best code choose karna...');
-  
-  let code = await chooseBest([v1, v2, v3]) || v1 || v2;
-  if (!code) { buildLog('❌ Code generate nahi hua!', '#ff4444'); closeBuild(); return; }
-
-  buildLog('✅ Base code ready! Improvement loop shuru...');
-
-  // Auto improve loop
-  let score = 0, round = 0;
-  while (score < 30 && round < 6 && !buildCancelled) {
-    round++;
-    setBuildProgress(35 + round*8, `Round ${round}: Score ${score}/30 — improving...`);
-    buildLog(`🔄 Round ${round} — score: ${score}/30`);
-
-    const comparePrompt = `
-      Carrom game code features (snippet): ${code.slice(0,1500)}
-      Disc Pool weaknesses: no AI, basic physics, no effects, no achievements, no themes.
-      Score do 0-30. 30 = 30x better.
-      JSON only: {"score":<number>,"add":["feature1","feature2","feature3"]}
-    `;
-    
-    const cmpResult = await callGemini(comparePrompt);
-    try {
-      const parsed = JSON.parse(cmpResult?.replace(/```json|```/g,'').trim() || '{}');
-      score = parsed.score || 0;
-      buildLog(`📊 Score: ${score}/30`);
-      
-      document.getElementById('myScore').textContent = score + 'x';
-      document.getElementById('scoreDisplay').textContent = score + '/30';
-
-      if (score >= 30) { buildLog('🎉 30x achieved!', '#00ff88'); break; }
-
-      const impPrompt = `
-        Improve this carrom game: ${code.slice(0,4000)}
-        Add: ${(parsed.add||[]).join(', ')}
-        Also add: realistic spin physics, smooth animations, better UI, combo system.
-        Return complete improved HTML file only.
-      `;
-      const improved = await callGroq(impPrompt) || await callGemini(impPrompt);
-      if (improved && improved.length > 500) { code = improved; buildLog('✅ Improved!'); }
-    } catch(e) { buildLog('⚠️ Parse error, continue...', '#ffaa00'); }
-
-    await new Promise(r => setTimeout(r, 2000));
-  }
-
-  if (buildCancelled) return;
-
-  // Final polish
-  setBuildProgress(90, 'Final polish...');
-  buildLog('✨ Final polish ho raha hai...');
-
-  const polishPrompt = `
-    Final polish karo ye carrom game:
-    ${code.slice(0,4000)}
-    Fix all bugs, add loading screen, add "DevMind AI" branding footer.
-    Return complete HTML.
-  `;
-  
-  const polished = await callGroq(polishPrompt);
-  if (polished && polished.length > 500) code = polished;
-
-  currentCode = code;
-  document.getElementById('codeEditor').value = code;
-  document.getElementById('linesDisplay').textContent = code.split('\n').length;
-  document.getElementById('buildStatus').textContent = '✅ Done!';
-
-  setBuildProgress(100, '✅ Game Ready! 30x Better!');
-  buildLog('🎉 GAME READY HAI BHAI!', '#00ff88');
-  buildLog('📥 Download karo ya Code tab pe dekho', '#00aaff');
-
-  setTimeout(() => {
-    closeBuild();
-    switchTab('code');
-    showToast('🎮 Game ready! Download karo!');
-    addMsg("🎉 Game ban gaya! 30x better than Disc Pool. Code tab pe dekho ya download karo!", false, [
-      { label:'📥 Download', fn:'downloadCode()', cls:'green' },
-      { label:'🔍 Compare', fn:'runCompare()' }
-    ]);
-    switchTab('chat');
-  }, 2000);
-}
-
-function cancelBuild() { buildCancelled = true; closeBuild(); }
-function closeBuild() { document.getElementById('buildOverlay').classList.remove('show'); }
-
-// ════════════════════════════════════════
-// COMPARE
-// ════════════════════════════════════════
-async function runCompare() {
-  switchTab('compare');
-  if (!currentCode) { showToast('Pehle game build karo!'); return; }
-
-  showToast('🔍 Comparing with Disc Pool...');
-  document.getElementById('myScore').textContent = '...';
-
-  const prompt = `
-    My carrom game features from code: ${currentCode.slice(0,2000)}
-    Compare with Carrom Disc Pool (basic physics, no AI, no effects, simple rules).
-    Score 1-30 (30 = 30x better).
-    JSON: {"score":<n>,"my_features":["f1","f2","f3","f4","f5"],"disc_features":["f1","f2"],"verdict":"..."}
-  `;
-
-  const result = await callGemini(prompt);
-  try {
-    const d = JSON.parse(result?.replace(/```json|```/g,'').trim() || '{}');
-    document.getElementById('myScore').textContent = (d.score || '?') + 'x';
-    document.getElementById('scoreDisplay').textContent = (d.score||'?') + '/30';
-    showToast(`Score: ${d.score}/30 — ${d.verdict || ''}`);
-  } catch(e) {
-    showToast('Compare done! Result check karo.');
-  }
-}
-
-// ════════════════════════════════════════
-// FIX BUGS
-// ════════════════════════════════════════
-async function fixBugs() {
-  if (!currentCode) { showToast('Pehle game build karo!'); return; }
-  showToast('🐛 Fixing bugs...');
-  document.getElementById('buildStatus').textContent = 'Fixing...';
-
-  const prompt = `Fix all bugs in this game code. Return complete fixed HTML:\n${currentCode.slice(0,6000)}`;
-  const fixed = await callGroq(prompt) || await callGemini(prompt);
-  
-  if (fixed && fixed.length > 300) {
-    currentCode = fixed;
-    document.getElementById('codeEditor').value = fixed;
-    showToast('✅ Bugs fixed!');
-    document.getElementById('buildStatus').textContent = '✅ Fixed!';
-  } else {
-    showToast('⚠️ Fix nahi hua, try again');
-  }
-}
-
-// ════════════════════════════════════════
-// IMPROVE
-// ════════════════════════════════════════
-async function improveCode() {
-  if (!currentCode) { showToast('Pehle game build karo!'); return; }
-  showToast('⚡ Improving...');
-  
-  const prompt = `Make this game significantly better — add more features, better UI, smoother physics. Return complete HTML:\n${currentCode.slice(0,5000)}`;
-  const improved = await callGroq(prompt) || await callGemini(prompt);
-  
-  if (improved && improved.length > 300) {
-    currentCode = improved;
-    document.getElementById('codeEditor').value = improved;
-    document.getElementById('linesDisplay').textContent = improved.split('\n').length;
-    showToast('✅ Improved!');
-  }
-}
-
-// ════════════════════════════════════════
-// DOWNLOAD
-// ════════════════════════════════════════
-function downloadCode() {
-  const code = currentCode || document.getElementById('codeEditor').value;
-  if (!code) { showToast('Koi code nahi hai! Pehle build karo.'); return; }
-  const blob = new Blob([code], { type:'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'carrom-30x.html';
-  a.click();
-  showToast('📥 Downloaded! Browser mein open karo.');
-}
-
-function clearCode() {
-  document.getElementById('codeEditor').value = '';
-  currentCode = '';
-  showToast('🗑 Cleared!');
-}
-
-// ════════════════════════════════════════
-// TOAST
-// ════════════════════════════════════════
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ════════════════════════════════════════
-// INIT
-// ════════════════════════════════════════
-loadKeys();
-</script>
-</body>
-  </html>
+  <!-- API Status Cards -->
+  <div class="api-status-grid">
+    <div class="api-card gemini" onclick="sw('keys')">
+      <div class="api-dot" id="dot-gemini"></div>
+      <div class="api-info">
+        <div class="api-name">Gemini</div>
+        <div class="api-count" id="cnt-gemini">0/4 keys</div>
+      </div>
+      <div class="api-ping" id="ping-gemini">—</div>
+    </div>
+    <div class="api-card groq" onclick="sw('keys')">
+      <div class="api-dot" id="dot-groq"></div>
+      <div class="api-info">
+        <div class="api-na
