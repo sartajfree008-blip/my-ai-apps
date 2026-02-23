@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080c14">
+<title>DevMind AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c14;
+  --bg2: #0d1420;
+  --bg3: #111c2e;
+  --border: #1e2d45;
+  --accent: #00e5ff;
+  --accent2: #7c3aff;
+  --accent3: #ff3a7c;
+  --green: #00ff88;
+  --text: #e8f4ff;
+  --muted: #4a6080;
+  --card: #0f1928;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at 70% 20%, rgba(124,58,255,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(0,229,255,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.1) rotate(3deg); }
+}
+
+/* ─── LAYOUT ─── */
+#app {
+  position: relative;
+  z-index: 1;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── HEADER ─── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,20,0.9);
+  backdrop-filter: blur(20px);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.header-status {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+
+/* ─── TABS ─── */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex: 1;
+  min-width: 70px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(0,229,255,0.05);
+}
+
+.tab:hover:not(.active) { color: var(--text); }
+
+/* ─── PANELS ─── */
+.panel {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.panel.active {
+  display: flex;
+}
+
+/* ═══════════════════════════════
+   CHAT PANEL
+═══════════════════════════════ */
+#chatPanel {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+#chatPanel.active { display: flex; }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  animation: msgIn 0.3s ease;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.msg.ai .msg-avatar { background: linear-gradient(135deg, var(--accent2), var(--accent)); }
+.msg.user .msg-avatar { background: linear-gradient(135deg, var(--accent3), #ff8c00); }
+
+.msg-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.msg.ai .msg-bubble {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-top-left-radius: 4px;
+}
+
+.msg.user .msg-bubble {
+  background: linear-gradient(135deg, rgba(124,58,255,0.3), rgba(0,229,255,0.2));
+  border: 1px solid rgba(0,229,255,0.2);
+  border-top-right-radius: 4px;
+}
+
+.msg-bubble pre {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  background: rgba(0,0,0,0.4);
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-top: 8px;
+  border-left: 3px solid var(--accent);
+}
+
+.msg-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--accent);
+  background: rgba(0,229,255,0.08);
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: rgba(0,229,255,0.2);
+}
+
+.action-btn.green {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0,255,136,0.08);
+}
+
+.typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.typing span {
+  width: 6px; height: 6px;
+< truncated lines 285-1291 >
+      removeTyping();
+      addMsg(response, false);
+      await fixBugs();
+      return;
+    } else {
+      // General AI chat
+      const sys = `Tu DevMind AI hai — ek expert AI game developer + web developer. 
+      Tu Hindi aur English dono mein baat karta hai (Hinglish).
+      User ke saath friendly aur helpful reh.
+      Agar koi game ya app banana ho toh seedha keh: "Banata hun!" aur details maango.`;
+      
+      response = await callGroq(text, sys) || await callGemini(text);
+      
+      if (lower.includes('carrom') || lower.includes('game')) {
+        actions = [
+          { label:'🎮 Build Karo!', fn:"startBuild('carrom')" },
+          { label:'🔍 Compare', fn:'runCompare()' }
+        ];
+      }
+    }
+
+    removeTyping();
+    if (response) {
+      chatHistory.push({ role:'assistant', content: response });
+      addMsg(response, false, actions);
+    } else {
+      addMsg("⚠️ API se response nahi aaya. Keys check karo.", false);
+    }
+  } catch(e) {
+    removeTyping();
+    addMsg("❌ Error: " + e.message, false);
+  }
+}
+
+// ════════════════════════════════════════
+// BUILD SYSTEM
+// ════════════════════════════════════════
+function buildLog(msg, color='#00ff88') {
+  const d = document.getElementById('buildLog');
+  d.innerHTML += `<span style="color:${color}">▶ ${msg}</span><br>`;
+  d.scrollTop = 99999;
+}
+
+function setBuildProgress(pct, phase) {
+  document.getElementById('buildBar').style.width = pct + '%';
+  document.getElementById('buildPhaseText').textContent = phase;
+}
+
+async function startBuild(type='carrom', customPrompt='') {
+  if (KEYS.groq.length === 0) { showToast('⚠️ Pehle Groq API key save karo!'); switchTab('settings'); return; }
+  
+  buildCancelled = false;
+  document.getElementById('buildLog').innerHTML = '';
+  document.getElementById('buildOverlay').classList.add('show');
+  document.getElementById('buildStatus').textContent = 'Building...';
+
+  setBuildProgress(5, 'Phase 1: Base game generate ho raha hai...');
+  buildLog('🚀 Build shuru!');
+
+  const basePrompt = customPrompt || `
+    Ek complete carrom board game banao — single HTML file mein sab kuch.
+    Ye features zaroori hain:
+    1. HTML5 Canvas — realistic carrom board (wooden texture)
+    2. Real physics — collision, friction, spin, momentum conservation
+    3. Striker control — drag aur release (mouse + touch)
+    4. 9 black + 9 white coins + 1 red queen
+    5. 4 corner pockets
+    6. Smart AI opponent — 3 difficulty levels (Easy/Medium/Hard)
+    7. Proper carrom scoring (pocketing queen bonus, etc.)
+    8. Power meter + angle guide for striker
+    9. Particle effects on collision + pocket
+    10. Web Audio API sounds
+    11. Achievement system
+    12. 3 game modes: Classic, Timed, Tournament
+    13. Theme selector: Wood, Neon, Marble
+    14. Mobile touch support + responsive canvas
+    15. 60fps smooth animation
+    16. High score saved in localStorage
+    17. Main menu + pause menu
+    18. PWA meta tags
+    Ek hi HTML file, koi external library nahi.
+  `;
+
+  buildLog('📡 3 APIs parallel mein code generate kar rahe hain...');
+  setBuildProgress(15, 'Phase 1: Parallel generation...');
+
+  const [v1, v2, v3] = await Promise.all([
+    callGroq(basePrompt),
+    callGroq(basePrompt),
+    callGemini(basePrompt)
+  ]);
+
+  if (buildCancelled) return closeBuild();
+
+  buildLog('🧠 Best version choose ho raha hai...');
+  setBuildProgress(35, 'Phase 2: Best code choose karna...');
+  
+  let code = await chooseBest([v1, v2, v3]) || v1 || v2;
+  if (!code) { buildLog('❌ Code generate nahi hua!', '#ff4444'); closeBuild(); return; }
+
+  buildLog('✅ Base code ready! Improvement loop shuru...');
+
+  // Auto improve loop
+  let score = 0, round = 0;
+  while (score < 30 && round < 6 && !buildCancelled) {
+    round++;
+    setBuildProgress(35 + round*8, `Round ${round}: Score ${score}/30 — improving...`);
+    buildLog(`🔄 Round ${round} — score: ${score}/30`);
+
+    const comparePrompt = `
+      Carrom game code features (snippet): ${code.slice(0,1500)}
+      Disc Pool weaknesses: no AI, basic physics, no effects, no achievements, no themes.
+      Score do 0-30. 30 = 30x better.
+      JSON only: {"score":<number>,"add":["feature1","feature2","feature3"]}
+    `;
+    
+    const cmpResult = await callGemini(comparePrompt);
+    try {
+      const parsed = JSON.parse(cmpResult?.replace(/```json|```/g,'').trim() || '{}');
+      score = parsed.score || 0;
+      buildLog(`📊 Score: ${score}/30`);
+      
+      document.getElementById('myScore').textContent = score + 'x';
+      document.getElementById('scoreDisplay').textContent = score + '/30';
+
+      if (score >= 30) { buildLog('🎉 30x achieved!', '#00ff88'); break; }
+
+      const impPrompt = `
+        Improve this carrom game: ${code.slice(0,4000)}
+        Add: ${(parsed.add||[]).join(', ')}
+        Also add: realistic spin physics, smooth animations, better UI, combo system.
+        Return complete improved HTML file only.
+      `;
+      const improved = await callGroq(impPrompt) || await callGemini(impPrompt);
+      if (improved && improved.length > 500) { code = improved; buildLog('✅ Improved!'); }
+    } catch(e) { buildLog('⚠️ Parse error, continue...', '#ffaa00'); }
+
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  if (buildCancelled) return;
+
+  // Final polish
+  setBuildProgress(90, 'Final polish...');
+  buildLog('✨ Final polish ho raha hai...');
+
+  const polishPrompt = `
+    Final polish karo ye carrom game:
+    ${code.slice(0,4000)}
+    Fix all bugs, add loading screen, add "DevMind AI" branding footer.
+    Return complete HTML.
+  `;
+  
+  const polished = await callGroq(polishPrompt);
+  if (polished && polished.length > 500) code = polished;
+
+  currentCode = code;
+  document.getElementById('codeEditor').value = code;
+  document.getElementById('linesDisplay').textContent = code.split('\n').length;
+  document.getElementById('buildStatus').textContent = '✅ Done!';
+
+  setBuildProgress(100, '✅ Game Ready! 30x Better!');
+  buildLog('🎉 GAME READY HAI BHAI!', '#00ff88');
+  buildLog('📥 Download karo ya Code tab pe dekho', '#00aaff');
+
+  setTimeout(() => {
+    closeBuild();
+    switchTab('code');
+    showToast('🎮 Game ready! Download karo!');
+    addMsg("🎉 Game ban gaya! 30x better than Disc Pool. Code tab pe dekho ya download karo!", false, [
+      { label:'📥 Download', fn:'downloadCode()', cls:'green' },
+      { label:'🔍 Compare', fn:'runCompare()' }
+    ]);
+    switchTab('chat');
+  }, 2000);
+}
+
+function cancelBuild() { buildCancelled = true; closeBuild(); }
+function closeBuild() { document.getElementById('buildOverlay').classList.remove('show'); }
+
+// ════════════════════════════════════════
+// COMPARE
+// ════════════════════════════════════════
+async function runCompare() {
+  switchTab('compare');
+  if (!currentCode) { showToast('Pehle game build karo!'); return; }
+
+  showToast('🔍 Comparing with Disc Pool...');
+  document.getElementById('myScore').textContent = '...';
+
+  const prompt = `
+    My carrom game features from code: ${currentCode.slice(0,2000)}
+    Compare with Carrom Disc Pool (basic physics, no AI, no effects, simple rules).
+    Score 1-30 (30 = 30x better).
+    JSON: {"score":<n>,"my_features":["f1","f2","f3","f4","f5"],"disc_features":["f1","f2"],"verdict":"..."}
+  `;
+
+  const result = await callGemini(prompt);
+  try {
+    const d = JSON.parse(result?.replace(/```json|```/g,'').trim() || '{}');
+    document.getElementById('myScore').textContent = (d.score || '?') + 'x';
+    document.getElementById('scoreDisplay').textContent = (d.score||'?') + '/30';
+    showToast(`Score: ${d.score}/30 — ${d.verdict || ''}`);
+  } catch(e) {
+    showToast('Compare done! Result check karo.');
+  }
+}
+
+// ════════════════════════════════════════
+// FIX BUGS
+// ════════════════════════════════════════
+async function fixBugs() {
+  if (!currentCode) { showToast('Pehle game build karo!'); return; }
+  showToast('🐛 Fixing bugs...');
+  document.getElementById('buildStatus').textContent = 'Fixing...';
+
+  const prompt = `Fix all bugs in this game code. Return complete fixed HTML:\n${currentCode.slice(0,6000)}`;
+  const fixed = await callGroq(prompt) || await callGemini(prompt);
+  
+  if (fixed && fixed.length > 300) {
+    currentCode = fixed;
+    document.getElementById('codeEditor').value = fixed;
+    showToast('✅ Bugs fixed!');
+    document.getElementById('buildStatus').textContent = '✅ Fixed!';
+  } else {
+    showToast('⚠️ Fix nahi hua, try again');
+  }
+}
+
+// ════════════════════════════════════════
+// IMPROVE
+// ════════════════════════════════════════
+async function improveCode() {
+  if (!currentCode) { showToast('Pehle game build karo!'); return; }
+  showToast('⚡ Improving...');
+  
+  const prompt = `Make this game significantly better — add more features, better UI, smoother physics. Return complete HTML:\n${currentCode.slice(0,5000)}`;
+  const improved = await callGroq(prompt) || await callGemini(prompt);
+  
+  if (improved && improved.length > 300) {
+    currentCode = improved;
+    document.getElementById('codeEditor').value = improved;
+    document.getElementById('linesDisplay').textContent = improved.split('\n').length;
+    showToast('✅ Improved!');
+  }
+}
+
+// ════════════════════════════════════════
+// DOWNLOAD
+// ════════════════════════════════════════
+function downloadCode() {
+  const code = currentCode || document.getElementById('codeEditor').value;
+  if (!code) { showToast('Koi code nahi hai! Pehle build karo.'); return; }
+  const blob = new Blob([code], { type:'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'carrom-30x.html';
+  a.click();
+  showToast('📥 Downloaded! Browser mein open karo.');
+}
+
+function clearCode() {
+  document.getElementById('codeEditor').value = '';
+  currentCode = '';
+  showToast('🗑 Cleared!');
+}
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+loadKeys();
+</script>
+</body>
+  </html>
